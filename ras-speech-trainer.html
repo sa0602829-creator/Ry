@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>또박톡 — 파킨슨 발화 훈련</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+:root {
+  --cream: #F2EDE4;
+  --surface: #FAF7F2;
+  --border: #DDD5C8;
+  --wood1: #4A2C12;
+  --wood2: #7A4A22;
+  --wood3: #A06030;
+  --gold: #C8922A;
+  --gold2: #E4B84A;
+  --gold3: #F5D870;
+  --text: #2A1F14;
+  --text2: #6B5040;
+  --text3: #9E8060;
+  --green: #2E7D52;
+  --red: #9E3030;
+  --shadow: rgba(74,44,18,0.13);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  background: var(--cream);
+  color: var(--text);
+  font-family: 'Noto Serif KR', serif;
+  min-height: 100vh;
+  max-width: 480px;
+  margin: 0 auto;
+  padding-bottom: 2rem;
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  background: var(--wood1);
+  padding: .8rem 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.app-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--gold2);
+  letter-spacing: .08em;
+}
+.app-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: .58rem;
+  color: rgba(228,184,74,.5);
+  letter-spacing: .15em;
+}
+.streak {
+  background: rgba(255,255,255,.08);
+  border: 1px solid var(--gold);
+  border-radius: 12px;
+  padding: .3rem .7rem;
+  font-family: 'DM Mono', monospace;
+  font-size: .72rem;
+  color: var(--gold2);
+  display: flex; align-items: center; gap: .3rem;
+}
+
+/* ── STAGE CHIPS ── */
+.stage-row {
+  display: flex;
+  gap: .4rem;
+  padding: .7rem 1rem .4rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.stage-row::-webkit-scrollbar { display: none; }
+.chip {
+  flex-shrink: 0;
+  padding: .3rem .7rem;
+  border-radius: 16px;
+  font-family: 'DM Mono', monospace;
+  font-size: .62rem;
+  cursor: pointer;
+  border: 1.5px solid var(--border);
+  background: var(--cream);
+  color: var(--text3);
+  transition: all .15s;
+  white-space: nowrap;
+}
+.chip.active { background: var(--wood1); border-color: var(--gold); color: var(--gold2); }
+
+/* ── MAIN ── */
+.main { padding: .8rem .9rem; display: flex; flex-direction: column; gap: .85rem; }
+
+/* ── CARD ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 1.1rem;
+  box-shadow: 0 3px 14px var(--shadow);
+}
+
+/* ── METRONOME CARD ── */
+.metro-card { padding: 1rem; }
+
+.metro-grid {
+  display: grid;
+  grid-template-columns: 72px 1fr 100px;
+  gap: .7rem;
+  align-items: center;
+}
+
+/* CUE column */
+.cue-col { display: flex; flex-direction: column; gap: .45rem; }
+.cue-btn {
+  background: var(--cream);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: .5rem .4rem;
+  display: flex; flex-direction: column; align-items: center; gap: .18rem;
+  cursor: pointer; transition: all .14s;
+  box-shadow: 0 1px 4px var(--shadow);
+}
+.cue-btn.active { background: var(--wood1); border-color: var(--gold); }
+.cue-btn.active .ci { color: var(--gold2); }
+.cue-btn.active .cl { color: var(--gold3); }
+.ci { font-size: 1.2rem; color: var(--text2); }
+.cl { font-family: 'DM Mono', monospace; font-size: .54rem; color: var(--text3); letter-spacing: .04em; text-align: center; }
+
+/* Metronome SVG center */
+.metro-svg-wrap { display: flex; flex-direction: column; align-items: center; gap: .5rem; }
+
+/* BPM column */
+.bpm-col { display: flex; flex-direction: column; gap: .5rem; }
+.bpm-box {
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: .65rem .75rem;
+  box-shadow: 0 1px 5px var(--shadow);
+}
+.bpm-lbl { font-family: 'DM Mono', monospace; font-size: .58rem; color: var(--text3); letter-spacing: .12em; margin-bottom: .15rem; }
+.bpm-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 2.2rem;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1;
+}
+.bpm-unit { font-family: 'DM Mono', monospace; font-size: .58rem; color: var(--text3); }
+.pm-row { display: flex; gap: .35rem; margin-top: .45rem; align-items: center; }
+.pm-btn {
+  width: 30px; height: 30px;
+  background: var(--wood1);
+  border: none; border-radius: 50%;
+  color: var(--gold2); font-size: 1.1rem;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 6px rgba(74,44,18,.35);
+  transition: all .12s; flex-shrink: 0;
+}
+.pm-btn:active { transform: scale(.9); }
+.tap-btn {
+  flex: 1; padding: .3rem .2rem;
+  background: var(--cream); border: 1px solid var(--border); border-radius: 8px;
+  font-family: 'DM Mono', monospace; font-size: .56rem; color: var(--text3);
+  cursor: pointer; text-align: center; line-height: 1.4;
+}
+.tap-btn:active { background: var(--border); }
+
+.vol-box {
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: .55rem .75rem;
+}
+.vol-lbl { font-family: 'DM Mono', monospace; font-size: .58rem; color: var(--text3); letter-spacing: .1em; margin-bottom: .35rem; }
+input[type=range] {
+  width: 100%; -webkit-appearance: none;
+  height: 4px; background: var(--border); border-radius: 2px; outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 16px; height: 16px;
+  background: var(--wood1); border-radius: 50%;
+  border: 2px solid var(--gold); cursor: pointer;
+}
+
+/* Beat dots */
+.beat-dots { display: flex; gap: 5px; justify-content: center; }
+.dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--border); transition: all .05s;
+}
+.dot.lit { background: var(--gold); transform: scale(1.4); box-shadow: 0 0 5px var(--gold2); }
+.dot.lit.acc { background: var(--wood2); box-shadow: 0 0 8px var(--gold); }
+
+/* BPM slider below metro */
+.bpm-slider-row {
+  display: flex; align-items: center; gap: .5rem; padding: .2rem .1rem 0;
+}
+.bpm-slider-row span { font-family: 'DM Mono', monospace; font-size: .6rem; color: var(--text3); min-width: 22px; text-align: center; }
+.bpm-slider-row input { flex: 1; }
+
+/* Metro + mic buttons */
+.action-row { display: flex; gap: .6rem; }
+.abtn {
+  flex: 1; padding: .7rem;
+  border-radius: 12px; border: 1.5px solid var(--border);
+  background: var(--surface); color: var(--text2);
+  font-family: 'Noto Serif KR', serif; font-size: .82rem; font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: .3rem;
+  transition: all .13s; box-shadow: 0 2px 6px var(--shadow);
+}
+.abtn:active { transform: scale(.97); }
+.abtn.go { background: var(--wood1); border-color: var(--gold); color: var(--gold2); box-shadow: 0 3px 12px rgba(74,44,18,.3); }
+.abtn.mic-on { background: var(--green); border-color: var(--green); color: #fff; }
+.abtn.rec-on { background: var(--red); border-color: var(--red); color: #fff; }
+
+/* Vol meter */
+.vol-meter-row {
+  display: none; align-items: center; gap: .5rem;
+}
+.vm-lbl { font-family: 'DM Mono', monospace; font-size: .6rem; color: var(--text3); min-width: 45px; }
+.vm-track { flex: 1; height: 8px; background: var(--cream); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+.vm-fill { height: 100%; width: 0%; border-radius: 4px; background: linear-gradient(90deg, var(--green) 0%, #8BC34A 50%, #FFC107 75%, var(--red) 100%); transition: width .06s; }
+.vm-val { font-family: 'DM Mono', monospace; font-size: .62rem; color: var(--text2); min-width: 45px; text-align: right; }
+
+/* ── SENTENCE CARD ── */
+.sent-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: .6rem; }
+.sent-lbl { font-family: 'DM Mono', monospace; font-size: .62rem; color: var(--text3); letter-spacing: .1em; text-transform: uppercase; }
+.sent-nav { display: flex; gap: .3rem; align-items: center; }
+.snav-btn {
+  background: var(--cream); border: 1px solid var(--border); border-radius: 7px;
+  padding: .18rem .48rem; font-size: .68rem; cursor: pointer; color: var(--text3);
+  font-family: 'DM Mono', monospace;
+}
+.snav-btn:hover { background: var(--border); }
+.task-sel-wrap select {
+  width: 100%; background: var(--cream); border: 1px solid var(--border);
+  border-radius: 10px; padding: .38rem .6rem;
+  font-family: 'Noto Serif KR', serif; font-size: .8rem; color: var(--text);
+  outline: none; cursor: pointer; margin-bottom: .65rem;
+}
+.instruction {
+  font-size: .74rem; color: var(--text3); line-height: 1.6;
+  background: var(--cream); border-radius: 8px; padding: .5rem .7rem;
+  border-left: 3px solid var(--gold); margin-bottom: .65rem;
+}
+.instruction strong { color: var(--wood2); }
+
+/* Progress bar */
+.prog-bar { height: 3px; background: var(--cream); border-radius: 2px; overflow: hidden; border: 1px solid var(--border); margin-bottom: .6rem; }
+.prog-fill { height: 100%; background: var(--gold); border-radius: 2px; transition: width .3s; }
+
+/* Karaoke */
+.karaoke {
+  display: flex; flex-wrap: wrap; gap: .2rem .35rem;
+  align-items: baseline; min-height: 70px;
+  padding: .1rem 0 .6rem;
+}
+.syl {
+  display: inline-block;
+  font-size: clamp(1.5rem, 5vw, 2.1rem);
+  font-weight: 700; padding: .08rem .2rem;
+  border-radius: 6px; color: #C4B4A0;
+  transition: color .1s, background .1s, transform .12s;
+  line-height: 1.4; position: relative;
+}
+.syl.done { color: var(--green); }
+.syl.current {
+  color: var(--text);
+  background: rgba(200,146,42,.14);
+  transform: scale(1.1);
+  box-shadow: 0 2px 10px rgba(200,146,42,.2);
+}
+.syl.current::after {
+  content: '';
+  position: absolute; bottom: -4px; left: 8%; width: 84%; height: 2.5px;
+  background: var(--gold); border-radius: 2px;
+  animation: blink .5s ease-in-out infinite alternate;
+}
+@keyframes blink { from{opacity:1} to{opacity:.15} }
+.syl.missed { color: var(--red); text-decoration: line-through; opacity: .5; }
+
+/* Timing row */
+.timing-row { display: flex; align-items: center; gap: .6rem; margin-bottom: .3rem; }
+.t-lbl { font-family: 'DM Mono', monospace; font-size: .6rem; color: var(--text3); min-width: 44px; }
+.t-track { flex: 1; height: 6px; background: var(--cream); border: 1px solid var(--border); border-radius: 3px; overflow: hidden; }
+.t-fill { height: 100%; width: 0%; border-radius: 3px; transition: width .25s, background .25s; }
+.t-val { font-family: 'DM Mono', monospace; font-size: .68rem; min-width: 44px; text-align: right; color: var(--text3); }
+
+/* Feedback msg */
+.fb-msg {
+  font-size: .78rem; color: var(--text3); line-height: 1.55;
+  background: var(--cream); border-radius: 10px;
+  padding: .5rem .75rem; text-align: center;
+  border: 1px solid var(--border); min-height: 2.5rem;
+  display: flex; align-items: center; justify-content: center;
+}
+.fb-msg.good { color: var(--green); border-color: #A8D4B4; background: #F0FBF5; }
+.fb-msg.warn { color: var(--wood2); border-color: #DDB870; }
+.fb-msg.bad  { color: var(--red);   border-color: #D4A8A8; background: #FBF2F2; }
+
+/* ── SESS BUTTON ROW ── */
+.sess-row { display: flex; gap: .6rem; }
+.sess-btn {
+  flex: 2; padding: .75rem;
+  border-radius: 14px; border: none;
+  background: var(--wood1); color: var(--gold2);
+  font-family: 'Noto Serif KR', serif; font-size: .9rem; font-weight: 700;
+  cursor: pointer; transition: all .14s;
+  box-shadow: 0 4px 14px rgba(74,44,18,.3);
+  display: flex; align-items: center; justify-content: center; gap: .35rem;
+  position: relative; overflow: hidden;
+}
+.sess-btn::before {
+  content: ''; position: absolute;
+  inset: -3px; border-radius: 16px;
+  border: 2px solid rgba(228,184,74,.3);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:.3;transform:scale(1)} 50%{opacity:.8;transform:scale(1.02)} }
+.sess-btn.running { background: #7A1E1E; color: #FFB0B0; }
+.sess-btn.running::before { border-color: rgba(255,80,80,.3); }
+.sess-btn:active { transform: scale(.97); }
+.reset-btn {
+  flex: 1; padding: .75rem;
+  border-radius: 14px; border: 1.5px solid var(--border);
+  background: var(--surface); color: var(--text2);
+  font-family: 'Noto Serif KR', serif; font-size: .82rem; font-weight: 600;
+  cursor: pointer; box-shadow: 0 2px 6px var(--shadow);
+}
+
+/* ── STATS ── */
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: .5rem; }
+.stat-item { text-align: center; }
+.stat-val { font-family: 'DM Mono', monospace; font-size: 1.4rem; color: var(--wood1); line-height: 1; }
+.stat-name { font-family: 'DM Mono', monospace; font-size: .56rem; color: var(--text3); letter-spacing: .08em; text-transform: uppercase; margin-top: .18rem; }
+.stat-div { width: 1px; background: var(--border); align-self: stretch; margin: .2rem 0; }
+
+/* ── REPORT ── */
+.report-card { display: none; }
+.report-card.show { display: block; }
+.report-title { font-size: .9rem; font-weight: 700; color: var(--wood1); margin-bottom: .6rem; }
+.report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .45rem; margin-bottom: .55rem; }
+.ri { background: var(--cream); border-radius: 10px; padding: .5rem .65rem; }
+.ri-lbl { font-family: 'DM Mono', monospace; font-size: .58rem; color: var(--text3); letter-spacing: .09em; }
+.ri-val { font-family: 'DM Mono', monospace; font-size: 1.1rem; color: var(--text); margin-top: .1rem; }
+.report-cmt { font-size: .74rem; color: var(--text2); line-height: 1.6; background: #F0FBF5; border-radius: 10px; padding: .55rem .75rem; border-left: 3px solid var(--green); }
+
+/* ── CUSTOM ── */
+.custom-header { display: flex; align-items: center; justify-content: space-between; }
+.custom-lbl2 { font-family: 'DM Mono', monospace; font-size: .62rem; color: var(--text3); letter-spacing: .12em; text-transform: uppercase; }
+.ctoggle { font-family: 'DM Mono', monospace; font-size: .66rem; color: var(--wood2); background: none; border: 1px solid var(--wood3); border-radius: 6px; padding: .17rem .48rem; cursor: pointer; }
+.custom-body { display: none; flex-direction: column; gap: .55rem; margin-top: .65rem; }
+.custom-body.open { display: flex; }
+.hint { font-size: .72rem; color: var(--text3); line-height: 1.55; background: var(--cream); border-radius: 8px; padding: .48rem .68rem; border-left: 3px solid var(--gold); }
+.hint strong { color: var(--wood2); }
+textarea { width: 100%; min-height: 64px; background: var(--cream); border: 1.5px solid var(--border); border-radius: 10px; padding: .6rem; font-family: 'Noto Serif KR', serif; font-size: .9rem; color: var(--text); resize: vertical; outline: none; line-height: 1.6; }
+textarea:focus { border-color: var(--gold); }
+textarea::placeholder { color: #C4B4A0; }
+.prev-box { background: var(--cream); border: 1px solid var(--border); border-radius: 10px; padding: .58rem; min-height: 34px; display: flex; flex-wrap: wrap; gap: .1rem .2rem; align-items: center; }
+.ps { font-size: .9rem; font-weight: 600; padding: .03rem .1rem; }
+.ps.wb { margin-left: .28rem; border-left: 2px solid var(--gold); padding-left: .24rem; }
+.ps:first-child { margin-left: 0; border-left: none; }
+.pe { color: var(--border); font-family: 'DM Mono', monospace; font-size: .68rem; }
+.cb-row { display: flex; gap: .4rem; }
+.btn-apply { flex: 1; padding: .44rem; background: var(--wood1); color: var(--gold2); border: none; border-radius: 8px; font-family: 'Noto Serif KR', serif; font-size: .78rem; font-weight: 600; cursor: pointer; }
+.btn-clr { padding: .44rem .8rem; background: var(--cream); color: var(--text3); border: 1px solid var(--border); border-radius: 8px; font-size: .78rem; cursor: pointer; }
+
+/* ── RECORDINGS ── */
+.rec-area { display: none; margin-top: .6rem; }
+.rec-list { display: flex; flex-direction: column; gap: .3rem; max-height: 130px; overflow-y: auto; }
+.rec-item { display: flex; align-items: center; gap: .4rem; padding: .38rem .55rem; background: var(--cream); border: 1px solid var(--border); border-radius: 9px; }
+.rl { font-family: 'DM Mono', monospace; font-size: .62rem; color: var(--text2); min-width: 80px; }
+.rec-item audio { flex: 1; height: 24px; min-width: 0; }
+.rd { font-family: 'DM Mono', monospace; font-size: .7rem; color: var(--wood2); text-decoration: none; padding: .1rem .32rem; border: 1px solid var(--wood3); border-radius: 5px; }
+.rdel { background: none; border: none; color: var(--text3); cursor: pointer; font-size: .72rem; padding: .08rem .24rem; border-radius: 4px; }
+.rdel:hover { background: var(--red); color: #fff; }
+
+/* ── FEEDBACK POPUP ── */
+.fb-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 999; display: flex; align-items: center; justify-content: center; }
+.fb-pop { font-family: 'Noto Serif KR', serif; font-weight: 700; font-size: 4rem; opacity: 0; transform: scale(.4); pointer-events: none; white-space: nowrap; text-shadow: 0 4px 24px rgba(0,0,0,.15); }
+.fb-pop.show { animation: fbIn .65s cubic-bezier(.22,1,.36,1) forwards; }
+@keyframes fbIn {
+  0%   { opacity:0; transform:scale(.4) translateY(20px); }
+  40%  { opacity:1; transform:scale(1.1) translateY(-3px); }
+  75%  { transform:scale(.99); }
+  85%  { opacity:1; transform:scale(1); }
+  100% { opacity:0; transform:scale(1.03) translateY(-10px); }
+}
+
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+@media (max-width: 400px) {
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .stat-div { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div>
+    <div class="app-title">또박톡</div>
+    <div class="app-sub">PARKINSON SPEECH THERAPY · RAS</div>
+  </div>
+  <div class="streak">🔥 <span id="streakN">0</span>일 연속</div>
+</div>
+
+<!-- STAGE CHIPS -->
+<div class="stage-row" id="stageRow">
+  <div class="chip active" data-s="1">1단계 · 호흡</div>
+  <div class="chip" data-s="2">2단계 · 발성</div>
+  <div class="chip" data-s="3">3단계 · 음절</div>
+  <div class="chip" data-s="4">4단계 · 단어</div>
+  <div class="chip" data-s="5">5단계 · 문장</div>
+  <div class="chip" data-s="6">6단계 · 대화</div>
+</div>
+
+<div class="main">
+
+<!-- ① 메트로놈 카드 -->
+<div class="card metro-card">
+
+  <div class="metro-grid">
+    <!-- CUE 모드 -->
+    <div class="cue-col">
+      <div class="cue-btn active" data-cue="audio"><span class="ci">🔊</span><span class="cl">소리</span></div>
+      <div class="cue-btn" data-cue="visual"><span class="ci">👁</span><span class="cl">시각</span></div>
+      <div class="cue-btn" data-cue="vibration"><span class="ci">📳</span><span class="cl">진동</span></div>
+    </div>
+
+    <!-- 메트로놈 SVG (크게) -->
+    <div class="metro-svg-wrap">
+      <svg id="metroSVG" width="170" height="240" viewBox="0 0 170 240" style="overflow:visible;filter:drop-shadow(0 6px 18px rgba(30,10,0,.45))">
+        <defs>
+          <linearGradient id="wg" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#2E1608"/>
+            <stop offset="15%" stop-color="#5C3018"/>
+            <stop offset="35%" stop-color="#8B5028"/>
+            <stop offset="50%" stop-color="#9B6035"/>
+            <stop offset="65%" stop-color="#7A4420"/>
+            <stop offset="85%" stop-color="#4A2810"/>
+            <stop offset="100%" stop-color="#2E1608"/>
+          </linearGradient>
+          <linearGradient id="face" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#100806"/>
+            <stop offset="100%" stop-color="#1A0E08"/>
+          </linearGradient>
+          <linearGradient id="gg" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#F5D870"/>
+            <stop offset="45%" stop-color="#C8922A"/>
+            <stop offset="100%" stop-color="#8A5E14"/>
+          </linearGradient>
+          <linearGradient id="rod" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#8A6828"/>
+            <stop offset="40%" stop-color="#F0D060"/>
+            <stop offset="100%" stop-color="#8A6828"/>
+          </linearGradient>
+          <linearGradient id="base" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#5C3018"/>
+            <stop offset="100%" stop-color="#1E0C04"/>
+          </linearGradient>
+        </defs>
+
+        <!-- Body -->
+        <polygon points="18,225 152,225 128,72 42,72" fill="url(#wg)"/>
+        <!-- Face panel -->
+        <polygon points="32,218 138,218 118,82 52,82" fill="url(#face)"/>
+
+        <!-- Scale numbers left -->
+        <g font-family="DM Mono,monospace" font-size="7.5" fill="#C8922A">
+          <text x="40" y="104">40</text>
+          <text x="40" y="118">60</text>
+          <text x="40" y="132">72</text>
+          <text x="40" y="146">80</text>
+          <text x="40" y="160">96</text>
+          <text x="40" y="174">112</text>
+          <text x="40" y="188">132</text>
+          <text x="40" y="202">160</text>
+        </g>
+        <!-- Scale numbers right -->
+        <g font-family="DM Mono,monospace" font-size="7.5" fill="#C8922A" text-anchor="end">
+          <text x="130" y="104">40</text>
+          <text x="130" y="118">60</text>
+          <text x="130" y="132">72</text>
+          <text x="130" y="146">80</text>
+          <text x="130" y="160">96</text>
+          <text x="130" y="174">112</text>
+          <text x="130" y="188">132</text>
+          <text x="130" y="202">160</text>
+        </g>
+        <!-- Scale ticks -->
+        <g stroke="#C8922A" stroke-width=".8" opacity=".55">
+          <line x1="54" y1="102" x2="116" y2="102"/>
+          <line x1="54" y1="116" x2="116" y2="116"/>
+          <line x1="54" y1="130" x2="116" y2="130"/>
+          <line x1="54" y1="144" x2="116" y2="144"/>
+          <line x1="54" y1="158" x2="116" y2="158"/>
+          <line x1="54" y1="172" x2="116" y2="172"/>
+          <line x1="54" y1="186" x2="116" y2="186"/>
+          <line x1="54" y1="200" x2="116" y2="200"/>
+        </g>
+        <!-- BPM label -->
+        <text x="85" y="214" font-family="DM Mono,monospace" font-size="8" fill="#C8922A" text-anchor="middle" letter-spacing="3">BPM</text>
+
+        <!-- Pendulum slot -->
+        <rect x="82" y="74" width="6" height="148" rx="3" fill="rgba(0,0,0,.4)"/>
+
+        <!-- Pendulum -->
+        <g id="pendG" style="transform-origin:85px 78px;transform:rotate(0deg)">
+          <rect x="83.2" y="20" width="3.6" height="130" rx="1.8" fill="url(#rod)"/>
+          <!-- Weight block -->
+          <rect x="72" y="130" width="26" height="15" rx="4" fill="url(#gg)"/>
+          <rect x="74" y="133" width="22" height="4" rx="2" fill="rgba(255,255,255,.18)"/>
+          <!-- Pivot -->
+          <circle cx="85" cy="78" r="6" fill="url(#gg)"/>
+          <circle cx="85" cy="78" r="2.5" fill="#F5D870"/>
+          <!-- Bob top -->
+          <circle cx="85" cy="18" r="7" fill="url(#gg)"/>
+          <circle cx="82.5" cy="15.5" r="2.2" fill="rgba(255,255,255,.4)"/>
+        </g>
+
+        <!-- Right knob -->
+        <circle cx="155" cy="158" r="10" fill="url(#gg)"/>
+        <circle cx="155" cy="158" r="6" fill="url(#gg)" opacity=".7"/>
+        <circle cx="152" cy="155" r="2.5" fill="rgba(255,255,255,.3)"/>
+
+        <!-- Base -->
+        <polygon points="10,225 160,225 160,237 10,237" fill="url(#base)"/>
+        <polygon points="10,237 160,237 155,242 15,242" fill="#100604"/>
+        <!-- Logo -->
+        <circle cx="85" cy="232" r="8" fill="none" stroke="#C8922A" stroke-width=".9" opacity=".55"/>
+        <text x="85" y="235.5" font-family="serif" font-size="10" fill="#C8922A" text-anchor="middle" opacity=".65">𝄞</text>
+
+        <!-- Flash circle -->
+        <circle id="flashC" cx="85" cy="158" r="0" fill="#C8922A" opacity="0"/>
+      </svg>
+
+      <div class="beat-dots" id="beatDots"></div>
+    </div>
+
+    <!-- BPM + VOL -->
+    <div class="bpm-col">
+      <div class="bpm-box">
+        <div class="bpm-lbl">현재 속도</div>
+        <div class="bpm-num" id="bpmNum">80</div>
+        <div class="bpm-unit">BPM</div>
+        <div class="pm-row">
+          <button class="pm-btn" id="bpmM">−</button>
+          <button class="pm-btn" id="bpmP">+</button>
+        </div>
+        <button class="tap-btn" id="tapBtn" style="margin-top:.35rem;width:100%">👆 탭 템포</button>
+      </div>
+      <div class="vol-box">
+        <div class="vol-lbl">볼륨</div>
+        <input type="range" id="volSlider" min="0" max="100" value="70">
+      </div>
+    </div>
+  </div>
+
+  <!-- BPM 슬라이더 -->
+  <div class="bpm-slider-row" style="margin-top:.7rem">
+    <span>40</span>
+    <input type="range" id="bpmSlider" min="40" max="160" value="80">
+    <span>160</span>
+  </div>
+
+  <!-- 메트로놈 + 마이크 버튼 -->
+  <div class="action-row" style="margin-top:.75rem">
+    <button class="abtn" id="metroBtn">▶ 메트로놈 시작</button>
+    <button class="abtn" id="micBtn">🎤 마이크</button>
+    <button class="abtn" id="recBtn" style="display:none">⏺ 녹음</button>
+  </div>
+
+  <!-- 볼륨 미터 -->
+  <div class="vol-meter-row" id="volMeter" style="margin-top:.55rem">
+    <span class="vm-lbl">음성 크기</span>
+    <div class="vm-track"><div class="vm-fill" id="vmFill"></div></div>
+    <span class="vm-val" id="vmVal">—</span>
+  </div>
+
+</div><!-- /metro-card -->
+
+<!-- ② 훈련 문장 카드 -->
+<div class="card">
+  <div class="sent-top">
+    <span class="sent-lbl" id="sentLbl">5단계 · 문장 훈련</span>
+    <div class="sent-nav">
+      <button class="snav-btn" id="prevTask">◀</button>
+      <button class="snav-btn" id="nextTask">▶</button>
+    </div>
+  </div>
+
+  <div class="task-sel-wrap">
+    <select id="taskSel"></select>
+  </div>
+
+  <div class="instruction" id="instrEl">훈련 단계를 선택하세요.</div>
+
+  <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+
+  <div class="karaoke" id="karaokeEl">
+    <span class="syl" style="color:#C4B4A0;font-size:.9rem">메트로놈을 시작하고 훈련을 시작하세요</span>
+  </div>
+
+  <div class="timing-row">
+    <span class="t-lbl">타이밍</span>
+    <div class="t-track"><div class="t-fill" id="tFill"></div></div>
+    <span class="t-val" id="tVal">—</span>
+  </div>
+
+  <div class="fb-msg" id="fbMsg" style="margin:.5rem 0">메트로놈을 시작하고 훈련을 시작하세요.</div>
+
+  <div class="sess-row">
+    <button class="sess-btn" id="sessBtn" disabled>◉ 훈련 시작</button>
+    <button class="reset-btn" id="resetBtn">↺ 처음</button>
+  </div>
+</div>
+
+<!-- ③ 통계 -->
+<div class="card">
+  <div class="stats-grid">
+    <div class="stat-item"><div class="stat-val" id="stAcc">—</div><div class="stat-name">정확도</div></div>
+    <div class="stat-div"></div>
+    <div class="stat-item"><div class="stat-val" id="stCombo">0</div><div class="stat-name">연속</div></div>
+    <div class="stat-div"></div>
+    <div class="stat-item"><div class="stat-val" id="stHit">0</div><div class="stat-name">성공</div></div>
+    <div class="stat-div"></div>
+    <div class="stat-item"><div class="stat-val" id="stSess">0</div><div class="stat-name">훈련</div></div>
+  </div>
+</div>
+
+<!-- ④ 결과 리포트 -->
+<div class="card report-card" id="reportCard">
+  <div class="report-title">📋 훈련 결과 리포트</div>
+  <div class="report-grid">
+    <div class="ri"><div class="ri-lbl">박자 일치율</div><div class="ri-val" id="rBeat">—</div></div>
+    <div class="ri"><div class="ri-lbl">발화 정확도</div><div class="ri-val" id="rAcc">—</div></div>
+    <div class="ri"><div class="ri-lbl">훈련 BPM</div><div class="ri-val" id="rBpm">—</div></div>
+    <div class="ri"><div class="ri-lbl">단계</div><div class="ri-val" id="rStage">—</div></div>
+  </div>
+  <div class="report-cmt" id="rCmt"></div>
+</div>
+
+<!-- ⑤ 맞춤 문장 -->
+<div class="card">
+  <div class="custom-header">
+    <span class="custom-lbl2">맞춤 문장 입력</span>
+    <button class="ctoggle" id="ctoggle">+ 열기</button>
+  </div>
+  <div class="custom-body" id="cbody">
+    <div class="hint">단어 사이에 <strong>스페이스</strong>를 넣어 입력하세요.<br>예: <strong>오늘 병원에 갑니다</strong></div>
+    <textarea id="cinput" placeholder="여기에 문장을 입력하세요..."></textarea>
+    <div class="prev-box" id="cprev"><span class="pe">입력하면 미리보기가 표시됩니다</span></div>
+    <div class="cb-row">
+      <button class="btn-clr" id="cclr">지우기</button>
+      <button class="btn-apply" id="capply">✓ 이 문장으로 훈련</button>
+    </div>
+  </div>
+</div>
+
+<!-- ⑥ 녹음 목록 -->
+<div class="rec-area" id="recArea">
+  <div style="font-family:'DM Mono',monospace;font-size:.62rem;color:var(--text3);letter-spacing:.1em;margin-bottom:.38rem;padding:0 .1rem">🎧 녹음 목록 (클릭해서 재생 / ↓ 다운로드)</div>
+  <div class="rec-list" id="recList"></div>
+</div>
+
+</div><!-- /main -->
+
+<div class="fb-overlay"><div class="fb-pop" id="fbPop"></div></div>
+
+<script>
+(function(){
+'use strict';
+
+// ─── 데이터 ───────────────────────────────────────────
+var STAGES = {
+  1:{name:'호흡 훈련',bpm:60,tasks:[
+    {label:'2박 들이마시기 / 4박 내쉬기',text:'들이마시기 들이마시기 내쉬기 내쉬기 내쉬기 내쉬기',instr:'<strong>2박</strong>에 코로 들이마시고, <strong>4박</strong>에 입으로 천천히 내쉬세요. 복식호흡을 의식하세요.'},
+    {label:'4박 들이마시기 / 8박 내쉬기',text:'들이마시기 들이마시기 들이마시기 들이마시기 내쉬기 내쉬기 내쉬기 내쉬기 내쉬기 내쉬기 내쉬기 내쉬기',instr:'<strong>4박</strong>에 깊게 들이마시고, <strong>8박</strong>에 아주 천천히 내쉬세요.'},
+    {label:'호흡 리듬 안정화',text:'들숨 날숨 들숨 날숨 들숨 날숨 들숨 날숨',instr:'박자에 맞춰 <strong>들숨과 날숨</strong>을 반복하세요. 리듬이 일정해지도록 연습하세요.'},
+  ]},
+  2:{name:'지속 발성',bpm:60,tasks:[
+    {label:'"아——" 지속 발성',text:'아 아 아 아 아 아 아 아',instr:'한 박자에 "<strong>아——</strong>"를 길고 안정적으로 발성하세요. 소리가 떨리지 않도록 유지하세요.'},
+    {label:'"오——" 지속 발성',text:'오 오 오 오 오 오 오 오',instr:'입술을 둥글게 모으고 "<strong>오——</strong>"를 발성하세요.'},
+    {label:'"이——" 지속 발성',text:'이 이 이 이 이 이 이 이',instr:'입꼬리를 양옆으로 당기며 "<strong>이——</strong>"를 발성하세요.'},
+    {label:'모음 교대 발성',text:'아 오 이 아 오 이 아 오 이',instr:'박자에 맞춰 <strong>아, 오, 이</strong>를 또렷하게 구분하며 발성하세요.'},
+  ]},
+  3:{name:'음절 반복',bpm:72,tasks:[
+    {label:'파 타 카',text:'파 타 카 파 타 카 파 타 카 파 타 카',instr:'<strong>파 / 타 / 카</strong>를 박자에 맞춰 또박또박 발화하세요. 각 음절을 분명하게 발음합니다.'},
+    {label:'마 라 나',text:'마 라 나 마 라 나 마 라 나 마 라 나',instr:'<strong>마 / 라 / 나</strong> — 혀의 움직임을 의식하며 발음하세요.'},
+    {label:'바 보 부 비',text:'바 보 부 비 바 보 부 비 바 보 부 비',instr:'<strong>바 / 보 / 부 / 비</strong> — 입술을 확실히 붙였다 떼며 발음하세요.'},
+    {label:'혼합 음절',text:'가 나 다 라 마 바 사 아 자 차 카 타',instr:'다양한 음절을 박자에 맞춰 또렷하게 발화하세요.'},
+  ]},
+  4:{name:'단어 훈련',bpm:72,tasks:[
+    {label:'2음절 단어',text:'바 나 나 사 과 포 도 배 추 무 우',instr:'각 음절을 <strong>한 박자씩</strong> 발화하세요. 바——나——나처럼 음절을 분리합니다.'},
+    {label:'3음절 단어',text:'병 원 가 다 산 책 하 다 운 동 하 다',instr:'3음절 단어를 <strong>음절 단위</strong>로 나누어 박자에 맞춰 발화하세요.'},
+    {label:'일상 단어',text:'안 녕 하 세 요 감 사 합 니 다 주 세 요',instr:'일상 표현을 음절 단위로 리듬화하여 발화하세요.'},
+  ]},
+  5:{name:'문장 훈련',bpm:80,tasks:[
+    {label:'자기 표현',text:'저 는 천 천 히 또 박 또 박 말 할 수 있 습 니 다',instr:'자신감을 갖고 <strong>한 박자에 한 음절씩</strong> 발화하세요. 속도보다 명료도가 중요합니다.'},
+    {label:'병원 문장',text:'오 늘 은 병 원 에 갑 니 다',instr:'또렷하게 각 음절을 분리하여 발화하세요.'},
+    {label:'일상 문장 1',text:'오 늘 아 침 에 밥 을 먹 었 습 니 다',instr:'박자에 맞춰 <strong>일정한 속도</strong>로 발화하세요.'},
+    {label:'일상 문장 2',text:'공 원 에 서 가 볍 게 산 책 을 했 습 니 다',instr:'문장 전체를 일정한 박자로 발화하세요.'},
+    {label:'짧은 표현',text:'물 한 잔 주 세 요',instr:'짧고 또렷하게, 각 음절에 힘을 주세요.'},
+  ]},
+  6:{name:'대화 훈련',bpm:84,tasks:[
+    {label:'오늘 기분',text:'오 늘 기 분 은 어 떠 세 요?',instr:'질문을 읽은 뒤 박자에 맞춰 <strong>자신의 기분</strong>을 대답해 보세요.'},
+    {label:'아침 식사',text:'오 늘 아 침 에 무 엇 을 드 셨 나 요?',instr:'질문을 읽고 또박또박 아침 식사를 대답해 보세요.'},
+    {label:'오늘 날씨',text:'오 늘 날 씨 가 어 떤 가 요?',instr:'질문을 읽고 천천히 날씨를 대답해 보세요.'},
+    {label:'자기 소개',text:'성 함 이 어 떻 게 되 세 요?',instr:'질문을 읽고 자신의 이름을 또박또박 말해보세요.'},
+  ]},
+};
+
+// ─── 상태 ───────────────────────────────────────────
+var stage=5, taskIdx=0;
+var bpm=80, beatsPerMeasure=4, cueMode='audio', volLevel=0.7;
+var metroRunning=false, metroTimer=null, beatCount=0, lastBeatMs=0;
+var audioCtx=null;
+var sessionRunning=false;
+var syllables=[], sylIdx=0, beatsInSess=0, beatSpacing=2;
+var totalSyl=0, hitSyl=0, combo=0, maxCombo=0, sessCount=0;
+var beatHits=0, beatTotal=0;
+var micActive=false, micStream=null, analyserNode=null, recognition=null, micAnimId=null;
+var isRecording=false, mediaRecorder=null, recChunks=[], recCount=0;
+var fbTimer=null, tapTimes=[];
+
+// ─── INIT ────────────────────────────────────────────
+function init(){
+  // Stage chips
+  document.querySelectorAll('.chip').forEach(function(c){
+    c.onclick=function(){
+      document.querySelectorAll('.chip').forEach(function(x){x.classList.remove('active');});
+      c.classList.add('active');
+      stage=+c.dataset.s; taskIdx=0; loadStage();
+    };
+  });
+  // CUE buttons
+  document.querySelectorAll('.cue-btn').forEach(function(b){
+    b.onclick=function(){
+      document.querySelectorAll('.cue-btn').forEach(function(x){x.classList.remove('active');});
+      b.classList.add('active'); cueMode=b.dataset.cue;
+    };
+  });
+  // BPM controls
+  document.getElementById('bpmM').onclick=function(){setBpm(bpm-1);restart();};
+  document.getElementById('bpmP').onclick=function(){setBpm(bpm+1);restart();};
+  document.getElementById('tapBtn').onclick=tapTempo;
+  document.getElementById('bpmSlider').oninput=function(e){setBpm(+e.target.value);restart();};
+  document.getElementById('volSlider').oninput=function(e){volLevel=e.target.value/100;};
+  // Metro / Mic / Rec
+  document.getElementById('metroBtn').onclick=function(){metroRunning?stopMetro():startMetro();};
+  document.getElementById('micBtn').onclick=function(){micActive?stopMic():startMic();};
+  document.getElementById('recBtn').onclick=function(){isRecording?stopRec():startRec();};
+  // Session
+  document.getElementById('sessBtn').onclick=function(){sessionRunning?endSession():startSession();};
+  document.getElementById('resetBtn').onclick=resetSession;
+  // Task nav
+  document.getElementById('prevTask').onclick=function(){taskIdx=Math.max(0,taskIdx-1);loadTask();};
+  document.getElementById('nextTask').onclick=function(){taskIdx=Math.min(STAGES[stage].tasks.length-1,taskIdx+1);loadTask();};
+  document.getElementById('taskSel').onchange=function(e){taskIdx=+e.target.value;loadTask();};
+  // Custom
+  document.getElementById('ctoggle').onclick=function(){
+    var b=document.getElementById('cbody');var o=b.classList.toggle('open');
+    this.textContent=o?'— 닫기':'+ 열기';
+  };
+  document.getElementById('cinput').oninput=renderPrev;
+  document.getElementById('cclr').onclick=function(){document.getElementById('cinput').value='';renderPrev();};
+  document.getElementById('capply').onclick=applyCustom;
+  // Audio wake
+  ['touchstart','click'].forEach(function(ev){document.addEventListener(ev,wakeAudio,{once:true});});
+  buildDots(); loadStage();
+}
+
+function restart(){if(metroRunning){clearInterval(metroTimer);startMetroTimer();}}
+
+// ─── AUDIO CTX ───────────────────────────────────────
+function wakeAudio(){
+  try{
+    if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==='suspended')audioCtx.resume();
+  }catch(e){}
+}
+function getCtx(){wakeAudio();return audioCtx;}
+
+function playTick(accent){
+  try{
+    var c=getCtx();if(!c)return;
+    var o=c.createOscillator(),g=c.createGain();
+    o.connect(g);g.connect(c.destination);
+    o.type='square';
+    o.frequency.value=accent?1050:700;
+    var vol=(accent?0.5:0.28)*volLevel;
+    g.gain.setValueAtTime(0,c.currentTime);
+    g.gain.linearRampToValueAtTime(vol,c.currentTime+0.003);
+    g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.055);
+    o.start(c.currentTime);o.stop(c.currentTime+0.06);
+  }catch(e){}
+}
+function playFb(acc){
+  try{
+    var c=getCtx();if(!c)return;
+    var o=c.createOscillator(),g=c.createGain();
+    o.connect(g);g.connect(c.destination);
+    o.type=acc<0.4?'sawtooth':'sine';
+    o.frequency.value=acc>=0.88?660:acc>=0.65?520:acc>=0.4?420:200;
+    g.gain.setValueAtTime(0.2*volLevel,c.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.18);
+    o.start(c.currentTime);o.stop(c.currentTime+0.2);
+  }catch(e){}
+}
+
+// ─── METRONOME ───────────────────────────────────────
+function startMetro(){
+  metroRunning=true;beatCount=0;
+  var mb=document.getElementById('metroBtn');
+  mb.textContent='⏹ 정지';mb.classList.add('go');
+  document.getElementById('sessBtn').disabled=false;
+  startMetroTimer();
+}
+function stopMetro(){
+  metroRunning=false;clearInterval(metroTimer);
+  var mb=document.getElementById('metroBtn');
+  mb.textContent='▶ 메트로놈 시작';mb.classList.remove('go');
+  document.getElementById('sessBtn').disabled=true;
+  document.getElementById('pendG').style.transform='rotate(0deg)';
+  buildDots();
+  if(sessionRunning)endSession();
+}
+function startMetroTimer(){metroTimer=setInterval(onBeat,(60/bpm)*1000);}
+
+function buildDots(){
+  var el=document.getElementById('beatDots');el.innerHTML='';
+  for(var i=0;i<beatsPerMeasure;i++){
+    var d=document.createElement('div');d.className='dot';d.id='dd'+i;el.appendChild(d);
+  }
+}
+function onBeat(){
+  var acc=beatCount%beatsPerMeasure===0;
+  lastBeatMs=performance.now();
+  // Sound
+  if(cueMode==='audio'||cueMode==='both')playTick(acc);
+  // Vibration
+  if((cueMode==='vibration'||cueMode==='both')&&navigator.vibrate)navigator.vibrate(acc?65:35);
+  // Pendulum
+  var ang=(beatCount%2===0)?32:-32;
+  var pg=document.getElementById('pendG');
+  pg.style.transition='transform '+((60/bpm)*0.87)+'s ease-in-out';
+  pg.style.transform='rotate('+ang+'deg)';
+  // Flash circle
+  var fc=document.getElementById('flashC');
+  if(cueMode==='visual'||cueMode==='both'){
+    fc.setAttribute('r',acc?'28':'18');fc.setAttribute('opacity',acc?'0.28':'0.16');
+    setTimeout(function(){fc.setAttribute('r','0');fc.setAttribute('opacity','0');},120);
+  }else{
+    fc.setAttribute('r','12');fc.setAttribute('opacity',acc?'0.18':'0.1');
+    setTimeout(function(){fc.setAttribute('r','0');fc.setAttribute('opacity','0');},80);
+  }
+  // Dots
+  for(var i=0;i<beatsPerMeasure;i++){var d=document.getElementById('dd'+i);if(d)d.className='dot';}
+  var ad=document.getElementById('dd'+(beatCount%beatsPerMeasure));
+  if(ad)ad.className='dot lit'+(acc?' acc':'');
+  beatCount++;
+  if(sessionRunning)onSessionBeat();
+}
+
+// ─── BPM ─────────────────────────────────────────────
+function setBpm(v){
+  bpm=Math.max(40,Math.min(160,v));
+  document.getElementById('bpmNum').textContent=bpm;
+  document.getElementById('bpmSlider').value=bpm;
+}
+function tapTempo(){
+  var now=Date.now();
+  if(tapTimes.length>0&&now-tapTimes[tapTimes.length-1]>3000)tapTimes=[];
+  tapTimes.push(now);
+  if(tapTimes.length>=2){
+    var diffs=0;
+    for(var i=1;i<tapTimes.length;i++)diffs+=tapTimes[i]-tapTimes[i-1];
+    setBpm(Math.round(60000/(diffs/(tapTimes.length-1))));
+    restart();
+  }
+  if(tapTimes.length>8)tapTimes=tapTimes.slice(-4);
+}
+
+// ─── STAGE / TASK ─────────────────────────────────────
+function loadStage(){setBpm(STAGES[stage].bpm);buildTaskSel();loadTask();}
+function buildTaskSel(){
+  var sel=document.getElementById('taskSel');sel.innerHTML='';
+  STAGES[stage].tasks.forEach(function(t,i){
+    var o=document.createElement('option');o.value=i;o.textContent=t.label;sel.appendChild(o);
+  });
+  sel.value=taskIdx;
+}
+function loadTask(){
+  var t=STAGES[stage].tasks[taskIdx];
+  document.getElementById('taskSel').value=taskIdx;
+  document.getElementById('sentLbl').textContent=stage+'단계 · '+STAGES[stage].name;
+  document.getElementById('instrEl').innerHTML=t.instr;
+  syllables=parse(t.text);sylIdx=0;
+  renderKaraoke(true);updateProg();clearFb();
+  document.getElementById('reportCard').classList.remove('show');
+}
+
+// ─── PARSE ───────────────────────────────────────────
+function parse(text){
+  var words=text.trim().split(/\s+/).filter(Boolean),res=[];
+  words.forEach(function(w,wi){
+    Array.from(w).forEach(function(ch,ci){res.push({text:ch,space:false});});
+    if(wi<words.length-1)res.push({text:' ',space:true});
+  });
+  return res;
+}
+function renderKaraoke(preview){
+  var el=document.getElementById('karaokeEl');el.innerHTML='';
+  syllables.forEach(function(s,i){
+    if(s.space){var sp=document.createElement('span');sp.style.cssText='width:.22rem;display:inline-block';el.appendChild(sp);return;}
+    var span=document.createElement('span');span.className='syl';span.id='sy'+i;span.textContent=s.text;
+    if(!preview){if(i<sylIdx)span.classList.add('done');else if(i===sylIdx)span.classList.add('current');}
+    el.appendChild(span);
+  });
+}
+function updateKaraoke(){
+  syllables.forEach(function(s,i){
+    if(s.space)return;
+    var el=document.getElementById('sy'+i);if(!el)return;
+    el.className='syl';
+    if(i<sylIdx)el.classList.add('done');else if(i===sylIdx)el.classList.add('current');
+  });
+  updateProg();
+}
+function updateProg(){
+  var total=syllables.filter(function(s){return !s.space;}).length;
+  var done=syllables.filter(function(s,i){return !s.space&&i<sylIdx;}).length;
+  document.getElementById('progFill').style.width=(total?done/total*100:0)+'%';
+}
+
+// ─── SESSION ─────────────────────────────────────────
+function startSession(){
+  if(!metroRunning)return;
+  sessionRunning=true;beatsInSess=0;sylIdx=0;
+  totalSyl=syllables.filter(function(s){return !s.space;}).length;
+  hitSyl=0;combo=0;beatHits=0;beatTotal=0;
+  beatSpacing=bpm>100?1:bpm>70?2:3;
+  renderKaraoke(false);updateProg();
+  var sb=document.getElementById('sessBtn');
+  sb.textContent='⏹ 훈련 중지';sb.classList.add('running');
+  document.getElementById('reportCard').classList.remove('show');
+  setFbMsg('박자에 맞춰 발화하세요. ('+STAGES[stage].name+')','');
+}
+function endSession(){
+  sessionRunning=false;sessCount++;
+  var sb=document.getElementById('sessBtn');
+  sb.textContent='◉ 훈련 시작';sb.classList.remove('running');
+  updateStats();showReport();
+}
+function resetSession(){
+  sylIdx=0;beatsInSess=0;hitSyl=0;combo=0;
+  renderKaraoke(false);updateProg();clearFb();
+}
+function onSessionBeat(){
+  beatsInSess++;
+  if(beatsInSess%beatSpacing!==0)return;
+  while(sylIdx<syllables.length&&syllables[sylIdx].space)sylIdx++;
+  if(sylIdx>=syllables.length){endSession();return;}
+  beatTotal++;
+  if(!micActive)onHit(0.5+Math.random()*0.5); // demo: remove when mic works
+}
+function onHit(acc){
+  if(sylIdx>=syllables.length)return;
+  var s=syllables[sylIdx];if(!s||s.space)return;
+  var label,color,msg;
+  if(acc>=0.88){label='완벽';color='#C8922A';hitSyl++;combo++;beatHits++;msg='좋습니다. 현재 속도가 안정적입니다.';}
+  else if(acc>=0.65){label='좋음';color='#2E7D52';hitSyl++;combo++;beatHits++;msg='잘 하고 있습니다!';}
+  else if(acc>=0.40){label='보통';color='#7A4A22';hitSyl++;combo++;msg='조금 빠릅니다. 한 박자에 한 음절씩 말해보세요.';}
+  else{label='놓침';color='#9E3030';combo=0;msg='박자를 놓쳤습니다. 메트로놈 소리에 집중하세요.';}
+  maxCombo=Math.max(maxCombo,combo);
+  playFb(acc);
+  showTiming(acc,label,color);
+  popFb(label,color);
+  setFbMsg(msg,acc>=0.65?'good':acc>=0.4?'warn':'bad');
+  var el=document.getElementById('sy'+sylIdx);
+  if(el){el.classList.remove('current');el.classList.add(acc<0.4?'missed':'done');}
+  sylIdx++;
+  while(sylIdx<syllables.length&&syllables[sylIdx].space)sylIdx++;
+  updateKaraoke();updateStats();
+}
+
+// ─── REPORT ──────────────────────────────────────────
+function showReport(){
+  var acc=totalSyl>0?Math.round(hitSyl/totalSyl*100):0;
+  var beat=beatTotal>0?Math.round(beatHits/beatTotal*100):0;
+  document.getElementById('rBeat').textContent=beat+'%';
+  document.getElementById('rAcc').textContent=acc+'%';
+  document.getElementById('rBpm').textContent=bpm+' BPM';
+  document.getElementById('rStage').textContent=stage+'단계';
+  var c=acc>=85?'훈련 결과가 매우 우수합니다! 다음 단계로 도전해 보세요.':acc>=70?'안정적인 발화가 이루어지고 있습니다. 꾸준히 반복하세요.':acc>=50?'박자에 더 집중하며 발화하세요. BPM을 낮춰보세요.':'메트로놈 소리에 집중하며 천천히 시작하세요.';
+  document.getElementById('rCmt').textContent=c;
+  document.getElementById('reportCard').classList.add('show');
+}
+
+// ─── FEEDBACK UI ─────────────────────────────────────
+function showTiming(acc,label,color){
+  document.getElementById('tFill').style.cssText='width:'+(acc*100)+'%;background:'+color;
+  document.getElementById('tVal').style.color=color;
+  document.getElementById('tVal').textContent=label;
+}
+function clearFb(){
+  document.getElementById('tFill').style.cssText='width:0%';
+  document.getElementById('tVal').textContent='—';
+  document.getElementById('tVal').style.color='var(--text3)';
+  setFbMsg('메트로놈을 시작하고 훈련을 시작하세요.','');
+}
+function setFbMsg(msg,cls){
+  var el=document.getElementById('fbMsg');
+  el.textContent=msg;el.className='fb-msg'+(cls?' '+cls:'');
+}
+function popFb(label,color){
+  var m={완벽:'✨ 완벽!',좋음:'👍 좋아요',보통:'🙂 보통',놓침:'💨 놓침'};
+  var sz={완벽:'3.8rem',좋음:'3.4rem',보통:'2.9rem',놓침:'2.7rem'};
+  var pop=document.getElementById('fbPop');
+  pop.textContent=m[label]||label;pop.style.color=color;pop.style.fontSize=sz[label]||'3rem';
+  pop.classList.remove('show');void pop.offsetWidth;pop.classList.add('show');
+  if(fbTimer)clearTimeout(fbTimer);
+  fbTimer=setTimeout(function(){pop.classList.remove('show');},720);
+}
+function updateStats(){
+  var acc=totalSyl>0?Math.round(hitSyl/totalSyl*100):0;
+  document.getElementById('stAcc').textContent=totalSyl>0?acc+'%':'—';
+  document.getElementById('stCombo').textContent=combo;
+  document.getElementById('stHit').textContent=hitSyl;
+  document.getElementById('stSess').textContent=sessCount;
+}
+
+// ─── MICROPHONE ───────────────────────────────────────
+function startMic(){
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){setFbMsg('⚠ 음성인식은 Chrome 브라우저에서만 작동합니다.','bad');return;}
+  navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+    micStream=stream;micActive=true;
+    var mb=document.getElementById('micBtn');mb.textContent='🔴 마이크 ON';mb.classList.add('mic-on');
+    document.getElementById('recBtn').style.display='';
+    document.getElementById('volMeter').style.display='flex';
+    startMicViz(stream);
+    // Speech recognition
+    recognition=new SR();
+    recognition.lang='ko-KR';recognition.continuous=true;
+    recognition.interimResults=true;recognition.maxAlternatives=2;
+    recognition.onresult=function(e){
+      if(!sessionRunning)return;
+      for(var i=e.resultIndex;i<e.results.length;i++)
+        checkSpeech(e.results[i][0].transcript.trim());
+    };
+    recognition.onerror=function(e){if(e.error!=='no-speech')setFbMsg('인식 오류: '+e.error,'bad');};
+    recognition.onend=function(){if(micActive){try{recognition.start();}catch(er){}}};
+    recognition.start();
+    setFbMsg('🎤 마이크 활성화 — 박자에 맞춰 발화하세요','good');
+  }).catch(function(e){setFbMsg('마이크 접근 실패: '+e.message,'bad');});
+}
+function stopMic(){
+  stopRec();micActive=false;
+  var mb=document.getElementById('micBtn');mb.textContent='🎤 마이크';mb.classList.remove('mic-on');
+  document.getElementById('recBtn').style.display='none';
+  document.getElementById('volMeter').style.display='none';
+  if(recognition){try{recognition.abort();}catch(e){}recognition=null;}
+  if(micStream){micStream.getTracks().forEach(function(t){t.stop();});micStream=null;}
+  if(micAnimId){cancelAnimationFrame(micAnimId);micAnimId=null;}
+}
+function checkSpeech(spoken){
+  if(sylIdx>=syllables.length)return;
+  var target=syllables[sylIdx];if(!target||target.space)return;
+  var clean=spoken.replace(/\s/g,'');
+  if(clean.includes(target.text)||target.text.includes(clean.slice(-1))){
+    var ms=performance.now()-lastBeatMs;
+    var beatMs=(60/bpm)*1000;
+    var dist=Math.min(ms/beatMs,1-ms/beatMs);
+    onHit(Math.max(0.1,1-dist*2.5));
+  }
+}
+function startMicViz(stream){
+  var c=getCtx();if(!c)return;
+  var src=c.createMediaStreamSource(stream);
+  analyserNode=c.createAnalyser();analyserNode.fftSize=256;src.connect(analyserNode);
+  function draw(){
+    micAnimId=requestAnimationFrame(draw);
+    var d=new Uint8Array(analyserNode.frequencyBinCount);
+    analyserNode.getByteFrequencyData(d);
+    var avg=0;for(var i=0;i<d.length;i++)avg+=d[i];avg=avg/d.length;
+    document.getElementById('vmFill').style.width=(avg/255*100)+'%';
+    document.getElementById('vmVal').textContent=avg<25?'너무 작음':avg<70?'적절':avg<130?'좋음':'크게';
+  }
+  draw();
+}
+
+// ─── RECORDING ───────────────────────────────────────
+function startRec(){
+  if(!micStream||isRecording)return;
+  recChunks=[];
+  var mime='audio/webm';
+  try{if(typeof MediaRecorder!=='undefined'&&MediaRecorder.isTypeSupported('audio/webm;codecs=opus'))mime='audio/webm;codecs=opus';}catch(e){}
+  try{mediaRecorder=new MediaRecorder(micStream,{mimeType:mime});}
+  catch(e){try{mediaRecorder=new MediaRecorder(micStream);}catch(e2){setFbMsg('녹음 미지원','bad');return;}}
+  mediaRecorder.ondataavailable=function(e){if(e.data&&e.data.size>0)recChunks.push(e.data);};
+  mediaRecorder.onstop=function(){saveRec(mediaRecorder.mimeType);};
+  mediaRecorder.start(100);isRecording=true;
+  var rb=document.getElementById('recBtn');rb.textContent='⏹ 녹음중지';rb.classList.add('rec-on');
+}
+function stopRec(){
+  if(!isRecording||!mediaRecorder)return;
+  try{mediaRecorder.stop();}catch(e){}isRecording=false;
+  var rb=document.getElementById('recBtn');rb.textContent='⏺ 녹음';rb.classList.remove('rec-on');
+}
+function saveRec(mime){
+  if(!recChunks.length)return;
+  var blob=new Blob(recChunks,{type:mime});
+  var url=URL.createObjectURL(blob);
+  var ext=mime.includes('ogg')?'ogg':'webm';
+  recCount++;
+  var now=new Date();
+  var lbl=stage+'단계 '+recCount+'회 ('+now.getHours()+':'+String(now.getMinutes()).padStart(2,'0')+')';
+  var area=document.getElementById('recArea');area.style.display='';
+  var list=document.getElementById('recList');
+  var item=document.createElement('div');item.className='rec-item';
+  var nm=document.createElement('span');nm.className='rl';nm.textContent=lbl;
+  var au=document.createElement('audio');au.src=url;au.controls=true;
+  var dl=document.createElement('a');dl.href=url;dl.download='또박톡_'+recCount+'.'+ext;dl.className='rd';dl.textContent='↓';
+  var del=document.createElement('button');del.className='rdel';del.textContent='✕';
+  del.onclick=function(){URL.revokeObjectURL(url);item.remove();};
+  item.appendChild(nm);item.appendChild(au);item.appendChild(dl);item.appendChild(del);
+  list.insertBefore(item,list.firstChild);
+}
+
+// ─── CUSTOM SENTENCE ──────────────────────────────────
+function renderPrev(){
+  var raw=document.getElementById('cinput').value;
+  var box=document.getElementById('cprev');
+  if(!raw.trim()){box.innerHTML='<span class="pe">입력하면 미리보기가 표시됩니다</span>';return;}
+  box.innerHTML='';
+  raw.trim().split(/\s+/).filter(Boolean).forEach(function(w,wi){
+    Array.from(w).forEach(function(ch,ci){
+      var s=document.createElement('span');s.className='ps'+(ci===0&&wi>0?' wb':'');s.textContent=ch;box.appendChild(s);
+    });
+  });
+}
+function applyCustom(){
+  var raw=document.getElementById('cinput').value.trim();if(!raw)return;
+  syllables=parse(raw);sylIdx=0;renderKaraoke(true);updateProg();clearFb();
+  document.getElementById('sentLbl').textContent='맞춤 문장';
+  document.getElementById('instrEl').innerHTML='입력한 문장을 <strong>박자에 맞춰</strong> 또박또박 읽어보세요.';
+}
+
+init();
+})();
+</script>
+</body>
+</html>
